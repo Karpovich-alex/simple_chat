@@ -1,0 +1,32 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block title %}
+    {% if title %}{{ title }} - Chat{% else %}Welcome to Chat{% endif %}
+{% endblock %}
+
+<div>
+    <a href="{{url_for('main.index') }}"> HOME </a>
+    <a href="{{ url_for('main.search') }}"> Search </a>
+    {% if current_user.is_anonymous %}
+        <a href="{{ url_for('auth.login') }}">Log In</a>
+    {% else %}
+        <h1> current_user.username</h1>
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
+    {% endif %}
+</div>
+
+{% block content %}
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-info" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {# application content needs to be provided in the app_content block #}
+        {% block app_content %}
+        {% endblock %}
+    </div>
+{% endblock %}

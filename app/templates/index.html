@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    {% if current_user.is_anonymous %}
+        <h1> Hi, anonymous </h1>
+    {% else %}
+        <h1> Hi, {{ current_user.username}}</h1>
+    {% endif %}
+    {% for user in user_list %}
+        {% include '_user_profile.html' %}
+    {% endfor %}
+{% endblock %}
