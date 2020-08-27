@@ -51,7 +51,6 @@ class AssociateDialogUser(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
 
 
-
 class User(UserMixin, db.Model):
     __tablename__ = 'user'
 
@@ -109,9 +108,39 @@ class Dialog(db.Model):
     # last_message_id = db.Column(db.Integer, default=0)
 
     def __repr__(self):
-        return '<Dialog {}>'.format(self.id)
+        return '<Dialog {}>'.format(self.dialog_name)
 
+    @staticmethod
+    def has_dialog(user1: User, user2: User):
+        q = Dialog.query.filter(Dialog.users.contains(user1) & Dialog.users.contains(user2)).all()
+        if q:
+            return True
+        else:
+            return False
 
+    def create_dialog(self, user1, user2):
+        if not self.has_dialog(user1, user2):
+            d = Dialog.users[user1, user2]
+            db.session.dd(d)
+            db.session.commit()
+            return d
+
+    @classmethod
+    def get_dialog(cls, user1, user2):
+        if cls.has_dialog(user1, user2):
+            return cls.query.filter(Dialog.users.contains(user1) & Dialog.users.contains(user2)).first()
+        else:
+            return cls.create_dialog(user1, user2)
+
+    @classmethod
+    def get_dialog_info(cls, user1: User, user2: User, info: str):
+        #TODO: change array to method
+        if info not in ['id', 'dialog_name']:
+            raise AttributeError
+        else:
+            d = cls.get_dialog(user1,user2)
+            info_data=d.__getattribute__(info)
+            return info_data
 
 @login.user_loader
 def load_user(id):

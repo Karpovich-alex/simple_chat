@@ -51,18 +51,31 @@ class DialogModelTest(unittest.TestCase):
     def create_users(self):
         self.u1 = User(username='User1')
         self.u2 = User(username='User2')
-        db.session.add(self.u1)
-        db.session.add(self.u2)
+        self.u3 = User(username='User3')
+        db.session.add_all([self.u1, self.u2, self.u3])
         db.session.commit()
 
-    def test_check_dialog(self):
-        pass
+    def create_dialog(self, u1, u2):
+        d = Dialog(users=[u1, u2])
+        db.session.add(d)
+        db.session.commit()
+        return d
 
+    def test_check_dialog(self):
+        self.create_users()
+        self.create_dialog(self.u1, self.u2)
+        self.assertTrue(Dialog.has_dialog(self.u1, self.u2))
+        self.assertFalse(Dialog.has_dialog(self.u1, self.u3))
 
     def test_get_dialog(self):
-        pass
+        self.create_users()
+        d = self.create_dialog(self.u1, self.u2)
+        self.assertIs(d, Dialog.get_dialog(self.u1, self.u2))
 
-
+    def test_test(self):
+        self.create_users()
+        self.create_dialog(self.u1, self.u2)
+        print(self.u1.dialogs.all())
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

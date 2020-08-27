@@ -33,6 +33,9 @@ def create_app(config_class=Config):
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
 
+    from app.dialogs import bp as dialog_bp
+    app.register_blueprint(dialog_bp, url_prefix='/dialogs')
+
     if not os.path.exists('logs'):
         os.mkdir('logs')
     file_handler = RotatingFileHandler('logs/chat.log',
