@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+<h1>New dialog</h1>
+
+{% for dialog in dialogs_list %}
+    {% include 'dialog/_dialog.html' %}
+{% endfor %}

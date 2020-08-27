@@ -6,6 +6,13 @@ from flask_login import UserMixin
 
 
 class Friend(db.Model):
+    """
+    is_inviter_friend|is_invited_friend| RESULT
+            True     |      False      | inviter is subscriber
+            True     |      True       | they are friends
+            False    |      True       | invited is subscriber
+            False    |      False      | they are not friends at all
+    """
     id = db.Column(db.Integer, primary_key=True)
     inviter_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     is_inviter_friend = db.Column(db.Boolean, default=False)
@@ -37,30 +44,28 @@ class Message(db.Model):
         return '<Message {}>'.format(self.body)
 
 
-class Dialog(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), default='')
+class AssociateDialogUser(db.Model):
+    __tablename__ = 'association'
 
-    participants_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    dialog_id = db.Column(db.Integer, db.ForeignKey('dialog.id'), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
 
-    messages = db.relationship('Message', backref='dialog')
-    last_action_time = db.Column(db.DateTime, default=datetime.utcnow)
-    last_message_id = db.Column(db.Integer, default=0)
-
-    def __repr__(self):
-        return '<Dialog {}>'.format(self.id)
 
 
 class User(UserMixin, db.Model):
+    __tablename__ = 'user'
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
     password_hash = db.Column(db.String(128))
     about_me = db.Column(db.String(140))
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+
     # friend = db.relationship('Friend', secondary=Friend, primaryjoin=(Friend.c.inviter_id == id),
     #                          secondaryjoin=(Friend.invited_id == id),
     #                          backref=db.backref('Friend', lazy='dynamic'), lazy='dynamic')
-    dialogs = db.relationship('Dialog', backref='participant', lazy='dynamic')
+
+    dialogs = db.relationship('Dialog', secondary='association', lazy='dynamic', backref='users')
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -89,6 +94,23 @@ class User(UserMixin, db.Model):
         return self.friend.filter_by(is_friend=True).filter(
             Friend.c.inviter_id == user.id).count() > 0 or self.friend.filter_by(is_friend=True).filter(
             Friend.c.invited_id == user.id).count() > 0
+
+
+class Dialog(db.Model):
+    __tablename__ = 'dialog'
+
+    id = db.Column(db.Integer, primary_key=True)
+    dialog_name = db.Column(db.String(64))
+
+    # participants_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    # messages = db.relationship('Message', backref='dialog')
+    # last_action_time = db.Column(db.DateTime, default=datetime.utcnow)
+    # last_message_id = db.Column(db.Integer, default=0)
+
+    def __repr__(self):
+        return '<Dialog {}>'.format(self.id)
+
 
 
 @login.user_loader
