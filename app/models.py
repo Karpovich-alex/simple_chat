@@ -31,8 +31,8 @@ class Message(db.Model):
 
     dialog_id = db.Column(db.Integer, db.ForeignKey('dialog.id'))
 
-    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    sender = db.relationship('User', backref='message')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship('User', backref='messages')
 
     body = db.Column(db.String(140))
 
@@ -64,7 +64,7 @@ class User(UserMixin, db.Model):
     #                          secondaryjoin=(Friend.invited_id == id),
     #                          backref=db.backref('Friend', lazy='dynamic'), lazy='dynamic')
 
-    dialogs = db.relationship('Dialog', secondary='association', lazy='dynamic', backref='users')
+    dialogs = db.relationship('Dialog', secondary='association', lazy='dynamic', backref='users', uselist=True)
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -113,16 +113,16 @@ class Dialog(db.Model):
     @staticmethod
     def has_dialog(user1: User, user2: User):
         q = Dialog.query.filter(Dialog.users.contains(user1) & Dialog.users.contains(user2)).all()
-        if q:
-            return True
-        else:
-            return False
+        # q=Dialog.query.filter(Dialog.users.any(id=user1.id)& Dialog.users.any(id=user2.id)).all()
+        return bool(q)
 
-    def create_dialog(self, user1, user2):
-        if not self.has_dialog(user1, user2):
-            d = Dialog.users[user1, user2]
-            db.session.dd(d)
+    @classmethod
+    def create_dialog(cls, user1, user2):
+        if not cls.has_dialog(user1, user2):
+            d = Dialog(users=[user1, user2])
+            db.session.add(d)
             db.session.commit()
+            # Maybe it hasnot got id
             return d
 
     @classmethod
@@ -131,16 +131,24 @@ class Dialog(db.Model):
             return cls.query.filter(Dialog.users.contains(user1) & Dialog.users.contains(user2)).first()
         else:
             return cls.create_dialog(user1, user2)
+            # cls.get_dialog(user1,user2)
 
     @classmethod
-    def get_dialog_info(cls, user1: User, user2: User, info: str):
-        #TODO: change array to method
+    def get_dialog_info(cls, user1: User, user2: User, info: str = 'id'):
+        # TODO: change array to method
         if info not in ['id', 'dialog_name']:
             raise AttributeError
         else:
-            d = cls.get_dialog(user1,user2)
-            info_data=d.__getattribute__(info)
+            d = cls.get_dialog(user1, user2)
+            info_data = d.__getattribute__(info)
             return info_data
+
+    @staticmethod
+    def new_message(dialog_id:int, sender: User, body):
+        msg = Message(user=sender, user_id=sender.id, body=body, dialog_id=dialog_id)
+        db.session.add(msg)
+        db.session.commit()
+
 
 @login.user_loader
 def load_user(id):

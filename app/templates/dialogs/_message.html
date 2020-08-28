@@ -1,10 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+<table class="table table-hover">
+        <tr>
+            <td width="50px">
+                <a href="{{ url_for('main.user', username=message.user.username) }}">{{ message.user.username }}
+                    <img src="{{ message.user.avatar(50) }}" />
+                </a>
+            </td>
+            <td>
+                <span id="msg{{ message.id }}">
+                    {{ message.body }}
+                </span>
+                <br>
+            <span>
+                {% if message.timestamp_send %}
+                    send: {{ message.timestamp_send }}
+                {% endif %}
+            </span>
+            </td>
+        </tr>
+    </table>

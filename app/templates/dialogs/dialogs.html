@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 
-<h1>New dialog</h1>
+{% block app_content %}
+
+    <h1>New dialog</h1>
 
 {% for dialog in dialogs_list %}
-    {% include 'dialog/_dialog.html' %}
+    {% include 'dialogs/_dialog.html' %}
 {% endfor %}
+
+{% endblock %}

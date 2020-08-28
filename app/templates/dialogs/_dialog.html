@@ -1,16 +1,16 @@
 <table class="table table-hover">
         <tr>
             <td width="70px">
-                <a href="{{ url_for('main.user', username=user.username) }}">
-                    <img src="{{ user.avatar(70) }}" />
+                <a href="{{ url_for('dialogs.dialog', id=dialog.id) }}"><h3>Dialog # {{ dialog.id }}</h3></a>
+
                 </a>
             </td>
             <td>
                 <span>
-                    <a href="{{ url_for('dialog.dialogs', id=dialog.id) }}"> {{ dialog.name }}</a>
+                    <a href="{{ url_for('dialogs.dialog', id=dialog.id) }}"> {{ dialog.name }}</a>
                 </span>
                 <br>
-                <span id="user{{ user.id }}">{{ last_message.body }}</span>
+                <span id="dialog{{ dialog.id }}">{# last_message.body #}</span>
             </td>
         </tr>
     </table>

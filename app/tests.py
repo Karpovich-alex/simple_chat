@@ -55,8 +55,18 @@ class DialogModelTest(unittest.TestCase):
         db.session.add_all([self.u1, self.u2, self.u3])
         db.session.commit()
 
-    def create_dialog(self, u1, u2):
-        d = Dialog(users=[u1, u2])
+        self.u1 = User.query.filter_by(id = 1).first()
+        self.u2 = User.query.filter_by(id = 2).first()
+        self.u3 = User.query.filter_by(id = 3).first()
+
+    def test_create(self):
+        self.create_users()
+        d = Dialog.create_dialog(self.u1, self.u2)
+        self.assertIs(Dialog.query.filter_by(id=1).first(),d)
+
+
+    def create_dialog(self, u1, u2, **kwargs):
+        d = Dialog(users=[u1, u2], **kwargs)
         db.session.add(d)
         db.session.commit()
         return d
@@ -69,13 +79,19 @@ class DialogModelTest(unittest.TestCase):
 
     def test_get_dialog(self):
         self.create_users()
-        d = self.create_dialog(self.u1, self.u2)
-        self.assertIs(d, Dialog.get_dialog(self.u1, self.u2))
 
-    def test_test(self):
+        d=Dialog.get_dialog(self.u1, self.u2)
+        self.assertEqual(1, d.id)
+
+        self.assertIs(d, Dialog.get_dialog(self.u1, self.u2))
+        self.assertEqual(d.id, Dialog.get_dialog(self.u1, self.u2).id)
+
+    def test_get_info(self):
         self.create_users()
-        self.create_dialog(self.u1, self.u2)
-        print(self.u1.dialogs.all())
+        self.create_dialog(self.u1, self.u2, dialog_name='First_dialog')
+        self.assertEqual(Dialog.get_dialog_info(self.u1, self.u2, info='id'), 1)
+        self.assertEqual(Dialog.get_dialog_info(self.u1, self.u2, info='dialog_name'), 'First_dialog')
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
