@@ -1,6 +1,6 @@
 <table class="table table-hover">
         <tr>
-            <td width="50px">
+            <td width="{{ width }}px">
                 <a href="{{ url_for('main.user', username=message.user.username) }}">{{ message.user.username }}
                     <img src="{{ message.user.avatar(50) }}" />
                 </a>

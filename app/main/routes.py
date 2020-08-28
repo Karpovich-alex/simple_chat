@@ -49,4 +49,4 @@ def send_message(username):
     if not user:
         return redirect(url_for('index'))
     dialog_id = Dialog.get_dialog_info(current_user, user, info='id')
-    return redirect(url_for('dialogs.dialogs', id=dialog_id))
+    return redirect(url_for('dialogs.dialog', id=dialog_id))

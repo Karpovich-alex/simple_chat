@@ -2,7 +2,6 @@
         <tr>
             <td width="70px">
                 <a href="{{ url_for('dialogs.dialog', id=dialog.id) }}"><h3>Dialog # {{ dialog.id }}</h3></a>
-
                 </a>
             </td>
             <td>
@@ -10,7 +9,21 @@
                     <a href="{{ url_for('dialogs.dialog', id=dialog.id) }}"> {{ dialog.name }}</a>
                 </span>
                 <br>
-                <span id="dialog{{ dialog.id }}">{# last_message.body #}</span>
+                    {% if dialog.last_message %}
+                        <span>
+                        {% with message = dialog.last_message%}
+                        {% with width=30 %}
+                            {% include 'dialogs/_message.html'%}
+                        {% endwith %}
+                        {% endwith %}
+                        </span>
+
+                    {% else %}
+                    <span>
+                        No last message
+                    </span>
+                    {% endif %}
+
             </td>
         </tr>
     </table>

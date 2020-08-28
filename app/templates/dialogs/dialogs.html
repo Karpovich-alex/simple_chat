@@ -3,9 +3,11 @@
 {% block app_content %}
 
     <h1>New dialog</h1>
-
-{% for dialog in dialogs_list %}
-    {% include 'dialogs/_dialog.html' %}
-{% endfor %}
-
+{% if dialogs_list %}
+    {% for dialog in dialogs_list %}
+        {% include 'dialogs/_dialog.html' %}
+    {% endfor %}
+{% else %}
+    <h1>No dialog</h1>
+{% endif %}
 {% endblock %}

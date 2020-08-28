@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Tuple
 from app import current_app, db, login
 from hashlib import md5
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -101,20 +102,28 @@ class Dialog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dialog_name = db.Column(db.String(64))
 
-    # participants_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    messages = db.relationship('Message', lazy='dynamic', backref='dialog')
 
-    # messages = db.relationship('Message', backref='dialog')
-    # last_action_time = db.Column(db.DateTime, default=datetime.utcnow)
-    # last_message_id = db.Column(db.Integer, default=0)
+    last_message_id = db.Column(db.Integer)
+    last_message = property()
+    last_action_time = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
         return '<Dialog {}>'.format(self.dialog_name)
+
+    @last_message.getter
+    def last_message(self):
+        msg = self.messages.filter_by(id=self.last_message_id).first()
+        return msg
 
     @staticmethod
     def has_dialog(user1: User, user2: User):
         q = Dialog.query.filter(Dialog.users.contains(user1) & Dialog.users.contains(user2)).all()
         # q=Dialog.query.filter(Dialog.users.any(id=user1.id)& Dialog.users.any(id=user2.id)).all()
         return bool(q)
+
+    def get_recipient(self):
+        pass
 
     @classmethod
     def create_dialog(cls, user1, user2):
@@ -134,6 +143,11 @@ class Dialog(db.Model):
             # cls.get_dialog(user1,user2)
 
     @classmethod
+    def get_dialog_by_id(cls, id: int):
+        d = Dialog.query.filter_by(id = id).first()
+        return d
+
+    @classmethod
     def get_dialog_info(cls, user1: User, user2: User, info: str = 'id'):
         # TODO: change array to method
         if info not in ['id', 'dialog_name']:
@@ -143,11 +157,17 @@ class Dialog(db.Model):
             info_data = d.__getattribute__(info)
             return info_data
 
-    @staticmethod
-    def new_message(dialog_id:int, sender: User, body):
-        msg = Message(user=sender, user_id=sender.id, body=body, dialog_id=dialog_id)
+
+    def new_message(self, sender: User, body: str):
+        msg = Message(user=sender, body=body, dialog=self)
         db.session.add(msg)
         db.session.commit()
+        self.last_message_id = msg.id
+        self.last_action_time = msg.timestamp_send
+        db.session.add(self)
+        db.session.commit()
+
+        return msg
 
 
 @login.user_loader

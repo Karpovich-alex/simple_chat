@@ -2,16 +2,21 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-
-    <h1>New dialog</h1>
+    <a href="{{ url_for('dialogs.dialogs') }}"> &lt;Back </a>
+    {% if recipient %}
+        <h1>Dialog with </h1>
+        <td width="70px"><img src="{{ recipient.avatar(70) }}">{{ recipient.username }}</td>
+    {% else %}
+        <h1>Dialog</h1>
+    {% endif %}
 {% if form %}
     {{ wtf.quick_form(form) }}
     <br>
 {% endif %}
 {% if messages_list %}
-{% for message in messages_list %}
-    {% include 'dialogs/_message.html' %}
-{% endfor %}
+    {% for message in messages_list %}
+        {% include 'dialogs/_message.html' %}
+    {% endfor %}
 {% else %}
     <h1>Create dialog to communicate with your friends</h1>
 {% endif %}
