@@ -1,8 +1,22 @@
 {% extends "base.html" %}
 
 {% block app_content %}
+<table>
+<tr>
+    <td>
+        <h1>Dialogs</h1>
+    </td>
 
-    <h1>New dialog</h1>
+</tr>
+<tr>
+    <td>
+        <a href="{{ url_for('dialogs.create_dialog') }}">
+            <h1>Create dialog</h1>
+        </a>
+    </td>
+</tr>
+</table>
+
 {% if dialogs_list %}
     {% for dialog in dialogs_list %}
         {% include 'dialogs/_dialog.html' %}

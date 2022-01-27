@@ -70,6 +70,11 @@ class DialogModelTest(unittest.TestCase):
         db.session.commit()
         return d
 
+    def test_create_dialog_ids(self):
+        self.create_users()
+        d = Dialog.create_dialog_new(ids=(1, 2, 3))
+        self.assertEqual(d, Dialog.get_by_id(1))
+
     def test_check_dialog(self):
         self.create_users()
         self.create_dialog(self.u1, self.u2)
@@ -94,9 +99,20 @@ class DialogModelTest(unittest.TestCase):
     def test_get_by_id(self):
         self.create_users()
         d = self.create_dialog(self.u1, self.u2)
-        d1= self.create_dialog(self.u1, self.u3)
-        self.assertIs(d, Dialog.get_dialog_by_id(1))
-        self.assertIsNot(d, Dialog.get_dialog_by_id(2))
+        d1 = self.create_dialog(self.u1, self.u3)
+        self.assertIs(d, Dialog.get_by_id(1))
+        self.assertIsNot(d, Dialog.get_by_id(2))
+
+    def test_get_rece(self):
+        self.create_users()
+        d = self.create_dialog(self.u1, self.u2)
+        self.assertIs(d.get_recipients(self.u1)[0], self.u2)
+        self.assertIs(d.get_recipients(self.u2)[0], self.u1)
+
+    def test_dialog_name(self):
+        self.create_users()
+        d = self.create_dialog(self.u1, self.u2)
+        self.assertEqual(d.get_dialog_name(self.u1), self.u2.username)
 
 
 class MessageModelTest(unittest.TestCase):
@@ -104,7 +120,7 @@ class MessageModelTest(unittest.TestCase):
         self.u1 = User(username='User1')
         self.u2 = User(username='User2')
         self.u3 = User(username='User3')
-        db.session.add_all([self.u1, self.u2,self.u3])
+        db.session.add_all([self.u1, self.u2, self.u3])
         db.session.commit()
         self.d = self.create_dialog(self.u1, self.u2)
         self.d1 = self.create_dialog(self.u1, self.u3)
@@ -132,8 +148,8 @@ class MessageModelTest(unittest.TestCase):
         self.assertTrue(Message.query.filter_by(id=1).first_or_404())
         self.assertIs(msg, Message.query.filter_by(id=1).first_or_404())
         self.assertEqual(Message.query.filter_by(id=1).first().body, 'text_body')
-        self.assertIs(Dialog.get_dialog_by_id(1).last_message, msg)
-        self.assertIsNot(Dialog.get_dialog_by_id(2).last_message, msg)
+        self.assertIs(Dialog.get_by_id(1).last_message, msg)
+        self.assertIsNot(Dialog.get_by_id(2).last_message, msg)
 
     def test_last_message(self):
         msg = self.d.new_message(sender=self.u1, body='text_body')

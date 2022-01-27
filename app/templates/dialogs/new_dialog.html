@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <a href="{{ url_for('dialogs.dialogs') }}"> &lt;Back </a>
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+        {{ form.label }}
+        {% for select in form.users_check_box %}
+            <div>
+                {{ select }} <img src="{{ form.avatars[select.data] }}" /> <span id="user{{ select.data }}">{{ select.label }}</span>
+            </div>
+        {% endfor %}
+        <input type="submit">
+    </form>
+
+{% endblock %}

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, List
 from app import current_app, db, login
 from hashlib import md5
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -65,7 +65,7 @@ class User(UserMixin, db.Model):
     #                          secondaryjoin=(Friend.invited_id == id),
     #                          backref=db.backref('Friend', lazy='dynamic'), lazy='dynamic')
 
-    dialogs = db.relationship('Dialog', secondary='association', lazy='dynamic', backref='users', uselist=True)
+    dialogs = db.relationship('Dialog', secondary='association', lazy='dynamic', back_populates='users', uselist=True)
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -104,6 +104,8 @@ class Dialog(db.Model):
 
     messages = db.relationship('Message', lazy='dynamic', backref='dialog')
 
+    users = db.relationship('User', lazy='dynamic', back_populates='dialogs', secondary='association', uselist=True)
+
     last_message_id = db.Column(db.Integer)
     last_message = property()
     last_action_time = db.Column(db.DateTime, default=datetime.utcnow)
@@ -122,17 +124,39 @@ class Dialog(db.Model):
         # q=Dialog.query.filter(Dialog.users.any(id=user1.id)& Dialog.users.any(id=user2.id)).all()
         return bool(q)
 
-    def get_recipient(self):
-        pass
+    def get_recipients(self, user: User, quantity: int = 3, page: int = 1) -> List:
+        return self.users.filter(User.id != user.id).paginate(page, quantity, False).items
+
+    def get_dialog_name(self, user: User):
+        if self.dialog_name:
+            return self.dialog_name
+        else:
+            dialog_name = ','.join(map(lambda u: u.username, self.get_recipients(user)))
+            return dialog_name
+
+    # TODO: add support of conference
+    def get_img(self, user: User, size=50):
+        recipient = self.get_recipients(user)[0]
+        return recipient.avatar(size)
 
     @classmethod
-    def create_dialog(cls, user1, user2):
+    def create_dialog(cls, user1, user2) -> 'Dialog':
         if not cls.has_dialog(user1, user2):
             d = Dialog(users=[user1, user2])
             db.session.add(d)
             db.session.commit()
             # Maybe it hasnot got id
             return d
+
+    @classmethod
+    def create_dialog_new(cls, users: Tuple[User, ...] = (), ids: Tuple[int, ...] = ()) -> 'Dialog':
+        d = Dialog()
+        if ids:
+            for user_id in ids:
+                d.users.append(User.query.filter_by(id=user_id).first())
+        db.session.add(d)
+        db.session.commit()
+        return d
 
     @classmethod
     def get_dialog(cls, user1, user2):
@@ -143,8 +167,8 @@ class Dialog(db.Model):
             # cls.get_dialog(user1,user2)
 
     @classmethod
-    def get_dialog_by_id(cls, id: int):
-        d = Dialog.query.filter_by(id = id).first()
+    def get_by_id(cls, id: int):
+        d = Dialog.query.filter_by(id=id).first()
         return d
 
     @classmethod
@@ -156,7 +180,6 @@ class Dialog(db.Model):
             d = cls.get_dialog(user1, user2)
             info_data = d.__getattribute__(info)
             return info_data
-
 
     def new_message(self, sender: User, body: str):
         msg = Message(user=sender, body=body, dialog=self)

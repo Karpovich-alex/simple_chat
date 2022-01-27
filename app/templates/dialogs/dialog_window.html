@@ -3,10 +3,12 @@
 
 {% block app_content %}
     <a href="{{ url_for('dialogs.dialogs') }}"> &lt;Back </a>
-    {% if recipient %}
+    {% if recipients %}
         <h1>Dialog with </h1>
-        <td width="70px"><img src="{{ recipient.avatar(70) }}">{{ recipient.username }}</td>
-    {% else %}
+        {% for recipient in recipients %}
+            <a href="{{ url_for('main.user', username=recipient.username) }}"><td width="70px"><img src="{{ recipient.avatar(70) }}">{{ recipient.username }}</td></a>
+        {% endfor %}
+        {% else %}
         <h1>Dialog</h1>
     {% endif %}
 {% if form %}
